@@ -22,6 +22,9 @@ class MainWindow:
         # Load processes when form loads
         self.load_processes()
         
+        # Start auto-refresh since it's enabled by default
+        self.root.after(100, self.start_auto_refresh)
+        
     def center_window(self):
         """Center the window on the screen"""
         self.root.update_idletasks()
@@ -67,7 +70,7 @@ class MainWindow:
         refresh_button.pack(side=tk.LEFT, padx=5)
         
         # Auto-refresh checkbox
-        self.auto_refresh_var = tk.BooleanVar()
+        self.auto_refresh_var = tk.BooleanVar(value=True)  # Enable by default
         auto_refresh_check = ttk.Checkbutton(
             button_frame,
             text="Auto-refresh (5s)",
@@ -163,8 +166,8 @@ class MainWindow:
                 # Get processes
                 processes = self.get_processes()
                 
-                # Sort by CPU usage (descending)
-                processes.sort(key=lambda x: x['cpu_percent'], reverse=True)
+                # Sort by process name (descending)
+                processes.sort(key=lambda x: x['name'].lower(), reverse=True)
                 
                 # Get existing items
                 existing_items = {}
