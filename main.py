@@ -160,26 +160,50 @@ class MainWindow:
         """Load and display processes in the treeview"""
         def load_in_thread():
             try:
-                # Clear existing items
-                for item in self.tree.get_children():
-                    self.tree.delete(item)
-                
                 # Get processes
                 processes = self.get_processes()
                 
                 # Sort by CPU usage (descending)
                 processes.sort(key=lambda x: x['cpu_percent'], reverse=True)
                 
-                # Add processes to treeview
-                for proc in processes:
-                    self.tree.insert('', 'end', values=(
+                # Get existing items
+                existing_items = {}
+                for item in self.tree.get_children():
+                    values = self.tree.item(item, 'values')
+                    if values:
+                        pid = values[0]
+                        existing_items[pid] = item
+                
+                # Update or add processes to treeview
+                new_pids = set()
+                for i, proc in enumerate(processes):
+                    pid = str(proc['pid'])
+                    new_pids.add(pid)
+                    
+                    values = (
                         proc['pid'],
                         proc['name'][:30],  # Truncate long names
                         f"{proc['cpu_percent']:.1f}",
                         f"{proc['memory_percent']:.1f}",
                         proc['status'],
                         proc['username']
-                    ))
+                    )
+                    
+                    if pid in existing_items:
+                        # Update existing item
+                        self.tree.item(existing_items[pid], values=values)
+                        # Move to correct position if needed
+                        current_index = self.tree.index(existing_items[pid])
+                        if current_index != i:
+                            self.tree.move(existing_items[pid], '', i)
+                    else:
+                        # Insert new item at correct position
+                        self.tree.insert('', i, values=values)
+                
+                # Remove items that no longer exist
+                for pid, item in existing_items.items():
+                    if pid not in new_pids:
+                        self.tree.delete(item)
                 
                 # Update status
                 self.root.after(0, lambda: self.status_label.config(
