@@ -18,7 +18,7 @@ class MainWindow:
         
         # Initialize sorting
         self.sort_column = 'Name'  # Default sort column
-        self.sort_reverse = True   # Default sort direction (descending)
+        self.sort_reverse = False  # Default sort direction (ascending - A to Z)
         
         # Configure the main window
         self.setup_ui()
