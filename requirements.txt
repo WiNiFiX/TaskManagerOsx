@@ -1,0 +1,11 @@
+# Python GUI Application Requirements
+# Tkinter is included with Python standard library, so no external dependencies are needed
+# This file is included for project documentation purposes
+
+# Process monitoring library
+psutil==5.9.6
+
+# If you want to add additional libraries later, you can add them here
+# For example:
+# pillow==10.0.0
+# requests==2.31.0 
