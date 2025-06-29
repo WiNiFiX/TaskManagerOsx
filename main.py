@@ -16,6 +16,10 @@ class MainWindow:
         # Center the window on screen
         self.center_window()
         
+        # Initialize sorting
+        self.sort_column = 'Name'  # Default sort column
+        self.sort_reverse = True   # Default sort direction (descending)
+        
         # Configure the main window
         self.setup_ui()
         
@@ -111,13 +115,13 @@ class MainWindow:
         columns = ('PID', 'Name', 'CPU %', 'Memory %', 'Status', 'User')
         self.tree = ttk.Treeview(tree_frame, columns=columns, show='headings', height=15)
         
-        # Define column headings
-        self.tree.heading('PID', text='PID')
-        self.tree.heading('Name', text='Process Name')
-        self.tree.heading('CPU %', text='CPU %')
-        self.tree.heading('Memory %', text='Memory %')
-        self.tree.heading('Status', text='Status')
-        self.tree.heading('User', text='User')
+        # Define column headings with click handlers
+        self.tree.heading('PID', text='PID', command=lambda: self.sort_by_column('PID'))
+        self.tree.heading('Name', text='Process Name', command=lambda: self.sort_by_column('Name'))
+        self.tree.heading('CPU %', text='CPU %', command=lambda: self.sort_by_column('CPU %'))
+        self.tree.heading('Memory %', text='Memory %', command=lambda: self.sort_by_column('Memory %'))
+        self.tree.heading('Status', text='Status', command=lambda: self.sort_by_column('Status'))
+        self.tree.heading('User', text='User', command=lambda: self.sort_by_column('User'))
         
         # Define column widths
         self.tree.column('PID', width=80, minwidth=80)
@@ -166,8 +170,8 @@ class MainWindow:
                 # Get processes
                 processes = self.get_processes()
                 
-                # Sort by process name (descending)
-                processes.sort(key=lambda x: x['name'].lower(), reverse=True)
+                # Sort by current sort column and direction
+                self.sort_processes(processes)
                 
                 # Get existing items
                 existing_items = {}
@@ -220,6 +224,34 @@ class MainWindow:
         
         # Run in separate thread to avoid blocking UI
         threading.Thread(target=load_in_thread, daemon=True).start()
+        
+    def sort_processes(self, processes):
+        """Sort processes based on current sort column and direction"""
+        if self.sort_column == 'PID':
+            processes.sort(key=lambda x: x['pid'], reverse=self.sort_reverse)
+        elif self.sort_column == 'Name':
+            processes.sort(key=lambda x: x['name'].lower(), reverse=self.sort_reverse)
+        elif self.sort_column == 'CPU %':
+            processes.sort(key=lambda x: x['cpu_percent'], reverse=self.sort_reverse)
+        elif self.sort_column == 'Memory %':
+            processes.sort(key=lambda x: x['memory_percent'], reverse=self.sort_reverse)
+        elif self.sort_column == 'Status':
+            processes.sort(key=lambda x: x['status'].lower(), reverse=self.sort_reverse)
+        elif self.sort_column == 'User':
+            processes.sort(key=lambda x: x['username'].lower(), reverse=self.sort_reverse)
+        
+    def sort_by_column(self, column):
+        """Handle column header clicks for sorting"""
+        if self.sort_column == column:
+            # Same column clicked - toggle direction
+            self.sort_reverse = not self.sort_reverse
+        else:
+            # Different column clicked - set as new sort column, default to ascending
+            self.sort_column = column
+            self.sort_reverse = False
+        
+        # Refresh the display with new sorting
+        self.load_processes()
         
     def refresh_processes(self):
         """Refresh the process list"""
